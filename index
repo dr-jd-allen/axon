@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXON: Agentic Executive Oversight Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            color: #1A202C;
+        }
+
+        /* --- NEW STYLES FOR THE LAYOUT --- */
+        .axon-header {
+            background-color: #38A169;
+            color: white;
+            font-weight: 700;
+            border-radius: 9999px;
+            padding: 0.75rem 2rem;
+            font-size: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .axon-subheader {
+            background-color: #68D391;
+            color: #1A202C;
+            font-weight: 500;
+            border-radius: 9999px;
+            padding: 0.5rem 1.5rem;
+            font-size: 0.9rem;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .agent-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 320px; /* Give a fixed width */
+        }
+        
+        .agent-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .agent-button {
+            background-color: #1A202C;
+            color: white;
+            border-radius: 9999px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex-grow: 1; /* Allow button to fill space */
+        }
+        
+        .agent-button:hover {
+             background-color: #2D3748;
+        }
+
+        .agent-name {
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .agent-model {
+            font-size: 0.7rem;
+            color: #A0AEC0;
+        }
+
+        .toggle-switch {
+            width: 60px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-on {
+            background-color: #65B741;
+            color: #1A202C;
+        }
+
+        .toggle-off {
+            background-color: #1A202C;
+            color: white;
+            border: 2px solid #4A5568;
+        }
+        
+        /* --- STYLES FOR RE-INTEGRATED FUNCTIONAL ELEMENTS --- */
+        .conversation-container {
+            background-color: #000000;
+            color: #E2E8F0;
+            height: 500px;
+            scrollbar-width: thin;
+            scrollbar-color: #4A5568 #1A202C;
+        }
+
+        .conversation-container::-webkit-scrollbar { width: 8px; }
+        .conversation-container::-webkit-scrollbar-track { background: #1A202C; }
+        .conversation-container::-webkit-scrollbar-thumb { background-color: #4A5568; border-radius: 4px; }
+        
+        .message-animation {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typing indicator for dark background */
+        .typing-indicator span {
+            background: #9CA3AF;
+            animation: bounce 1.5s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+    <div class="container mx-auto px-4 py-6 max-w-full">
+        <header class="flex flex-col items-center space-y-4 mb-6">
+            <div class="w-full flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                     <svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 9.25372 3.10249 6.77973 4.80887 5.07891M4.80887 5.07891C6.77973 3.10249 9.25372 2 12 2M4.80887 5.07891L7.5 8.5M12 2V5M19.1911 5.07891L16.5 8.5" stroke="#1a202c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <div class="font-bold text-xl text-gray-800">spinwheel <span class="font-light">bespoke cognition</span></div>
+                </div>
+                 <button id="settings-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition flex items-center">
+                    <i class="fas fa-cog mr-2"></i> Settings
+                </button>
+            </div>
+            
+            <div class="axon-header">
+                AXON: Agentic E<span class="font-light">X</span>ecutive <span class="font-light">O</span>versight <span class="font-light">N</span>etwork
+            </div>
+            
+            <div class="axon-subheader">
+                A space to facilitate autonomous communication between multiple AI agents with different specializations - exclusive to <span class="font-bold">spinwheel R+D</span> - to test hypotheses related to inorganic cognition.
+            </div>
+        </header>
+
+        <main class="flex justify-around items-start gap-6">
+            <div id="agent-list-left" class="agent-container">
+                </div>
+
+            <div class="flex-grow flex flex-col max-w-4xl">
+                <div class="conversation-container flex-grow rounded-lg p-4 mb-4 overflow-y-auto">
+                    <div id="conversation" class="space-y-4">
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-comment-dots text-4xl mb-2"></i>
+                            <p>Turn agents 'ON' to begin a conversation.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto">
+                    <div class="flex">
+                        <input type="text" id="user-message" placeholder="Type your message here..." class="bg-gray-200 text-black px-4 py-3 rounded-l-md flex-grow focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <button id="send-message" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-r-md transition flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> Send
+                        </button>
+                    </div>
+                    
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="flex space-x-2">
+                            <button id="auto-discuss" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition flex items-center">
+                                <i class="fas fa-brain mr-1"></i> Auto-Discuss
+                            </button>
+                            <button id="summarize" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-sm transition flex items-center">
+                                <i class="fas fa-file-alt mr-1"></i> Summarize
+                            </button>
+                             <button id="clear-chat" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition flex items-center">
+                                <i class="fas fa-trash-alt mr-1"></i> Clear
+                            </button>
+                        </div>
+                        <div class="text-gray-500 text-sm flex items-center">
+                           Tokens: <span id="token-count" class="ml-1 font-semibold">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="agent-list-right" class="agent-container">
+                </div>
+        </main>
+    </div>
+    
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-50">
+        <div class="bg-gray-800 text-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Agent Communication Settings</h3>
+                <button id="close-settings" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="text-center py-10">Your full settings panel from the original code would go here.</p>
+            <div class="pt-4 border-t border-gray-700">
+                <button id="save-settings" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md w-full transition">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // *** MERGED SCRIPT: Combines original functionality with new UI logic ***
+
+            // --- State variables from original code ---
+            const agents = [
+                // Left Column
+                { id: 1, name: 'Agent 1: "LEX"', model: '(CHATGPT-4 TURBO)', type: 'generalist', active: true },
+                { id: 3, name: 'Agent 3: "KIT"', model: '(CHATGPT-4.5 ADVANCED-RESEARCH)', type: 'researcher', active: true },
+                { id: 5, name: 'Agent 5: CLAUDE-4', model: '("OPUS")', type: 'creative', active: true },
+                { id: 7, name: 'Agent 7: GEMINI 2.5 FLASH', model: '', type: 'analyst', active: true },
+                // Right Column
+                { id: 2, name: 'Agent 2: CHATGPT-4.1', model: '', type: 'generalist', active: false },
+                { id: 4, name: 'Agent 4: "SAGE"', model: '(CLAUDE 4 "SONNET")', type: 'creative', active: false },
+                { id: 6, name: 'Agent 6: GEMINI 2.5 PRO', model: '', type: 'analyst', active: false },
+                { id: 8, name: 'Agent 8: META AI', model: '', type: 'generalist', active: false },
+            ];
+            
+            let conversation = [];
+            let tokenCount = 0;
+            
+            // --- DOM elements ---
+            const agentListLeftEl = document.getElementById('agent-list-left');
+            const agentListRightEl = document.getElementById('agent-list-right');
+            const conversationEl = document.getElementById('conversation');
+            const userMessageEl = document.getElementById('user-message');
+            const sendMessageBtn = document.getElementById('send-message');
+            const clearChatBtn = document.getElementById('clear-chat');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsModal = document.getElementById('settings-modal');
+            const closeSettingsBtn = document.getElementById('close-settings');
+            const saveSettingsBtn = document.getElementById('save-settings');
+            const autoDiscussBtn = document.getElementById('auto-discuss');
+            const summarizeBtn = document.getElementById('summarize');
+            const tokenCountEl = document.getElementById('token-count');
+
+            // --- Agent List Rendering (MODIFIED) ---
+            function renderAgentLists() {
+                agentListLeftEl.innerHTML = '';
+                agentListRightEl.innerHTML = '';
+
+                const leftAgents = agents.slice(0, 4);
+                const rightAgents = agents.slice(4, 8);
+
+                leftAgents.forEach(agent => {
+                    const agentEl = createAgentElement(agent);
+                    agentListLeftEl.appendChild(agentEl);
+                });
+
+                rightAgents.forEach(agent => {
+                    const agentEl = createAgentElement(agent, true); // isRightColumn = true
+                    agentListRightEl.appendChild(agentEl);
+                });
+            }
+
+            function createAgentElement(agent, isRightColumn = false) {
+                const item = document.createElement('div');
+                item.className = 'agent-item';
+                if (isRightColumn) item.classList.add('flex-row-reverse');
+                item.dataset.id = agent.id;
+
+                const toggleClass = agent.active ? 'toggle-on' : 'toggle-off';
+                const toggleText = agent.active ? 'ON' : 'OFF';
+
+                item.innerHTML = `
+                    <div class="toggle-switch ${toggleClass}">${toggleText}</div>
+                    <div class="agent-button">
+                        <span class="agent-name">${agent.name}</span>
+                        <span class="agent-model">${agent.model}</span>
+                    </div>
+                `;
+                item.addEventListener('click', () => toggleAgentState(agent.id));
+                return item;
+            }
+            
+            function toggleAgentState(agentId) {
+                const agent = agents.find(a => a.id === agentId);
+                if (agent) {
+                    agent.active = !agent.active;
+                    // Re-rendering is the simplest way to update the UI
+                    renderAgentLists(); 
+                }
+            }
+
+            // --- Conversation Logic (Re-integrated and Adapted) ---
+            function sendMessage() {
+                const message = userMessageEl.value.trim();
+                const selectedAgents = agents.filter(a => a.active);
+
+                if (message && selectedAgents.length > 0) {
+                    addMessageToConversation('user', 'You', message);
+                    
+                    selectedAgents.forEach(agent => {
+                        simulateAgentTyping(agent);
+                        
+                        setTimeout(() => {
+                            const response = generateAgentResponse(agent, message);
+                            // Remove typing indicator before adding response
+                            const typingIndicator = document.getElementById(`typing-${agent.id}`);
+                            if (typingIndicator) typingIndicator.remove();
+                            
+                            addMessageToConversation('agent', agent.name, response, agent.type);
+                            updateTokenCount(response.length / 4);
+                        }, 1000 + Math.random() * 1500);
+                    });
+                    
+                    userMessageEl.value = '';
+                } else if (selectedAgents.length === 0) {
+                    alert("Please turn at least one agent 'ON' to start a conversation.");
+                }
+            }
+
+            function addMessageToConversation(senderType, senderName, message, agentType = '') {
+                // Remove the initial placeholder if it's the first message
+                if (conversation.length === 0 && conversationEl.querySelector('.text-center')) {
+                    conversationEl.innerHTML = '';
+                }
+                
+                const messageId = Date.now();
+                conversation.push({ id: messageId, senderType, senderName, message });
+                
+                const messageEl = document.createElement('div');
+                messageEl.className = `message-animation flex ${senderType === 'user' ? 'justify-end' : 'justify-start'}`;
+                
+                if (senderType === 'user') {
+                    messageEl.innerHTML = `
+                        <div class="bg-blue-800 rounded-lg p-3 max-w-[75%]">
+                            <p class="text-white">${message}</p>
+                        </div>
+                    `;
+                } else {
+                    messageEl.innerHTML = `
+                        <div class="flex items-start space-x-3 max-w-[75%]">
+                             <div class="bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">${senderName.charAt(0)}</div>
+                            <div class="bg-gray-800 rounded-lg p-3">
+                                <div class="font-bold text-green-400 text-sm mb-1">${senderName} <span class="text-gray-400 font-light capitalize">(${agentType})</span></div>
+                                <p class="text-gray-200">${message}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                conversationEl.appendChild(messageEl);
+                conversationEl.scrollTop = conversationEl.scrollHeight;
+            }
+
+            function simulateAgentTyping(agent) {
+                if (document.getElementById(`typing-${agent.id}`)) return; // Don't add if already typing
+
+                const typingEl = document.createElement('div');
+                typingEl.id = `typing-${agent.id}`;
+                typingEl.className = 'flex items-start space-x-3 max-w-[75%]';
+                typingEl.innerHTML = `
+                     <div class="bg-gray-700 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">${agent.name.charAt(0)}</div>
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <div class="font-bold text-green-400 text-sm mb-1">${agent.name}</div>
+                        <div class="typing-indicator flex items-center space-x-1.5 h-5">
+                            <span class="w-2 h-2 rounded-full"></span>
+                            <span class="w-2 h-2 rounded-full"></span>
+                            <span class="w-2 h-2 rounded-full"></span>
+                        </div>
+                    </div>
+                `;
+                conversationEl.appendChild(typingEl);
+                conversationEl.scrollTop = conversationEl.scrollHeight;
+            }
+
+            function generateAgentResponse(agent, message) {
+                 const responses = {
+                    'generalist': `From a generalist standpoint regarding "${message.substring(0, 20)}...", the key is balance and integration.`,
+                    'researcher': `My research indicates that the core concepts of "${message.substring(0, 20)}..." are well-documented.`,
+                    'coder': `Technically speaking, an implementation for "${message.substring(0, 20)}..." would require a robust framework.`,
+                    'analyst': `Analyzing the data points for "${message.substring(0, 20)}...", I see a clear trend emerging.`,
+                    'creative': `Let's re-imagine "${message.substring(0, 20)}...". What if we approached it from a storytelling perspective?`
+                };
+                return responses[agent.type] || responses['generalist'];
+            }
+
+            function clearConversation() {
+                conversation = [];
+                conversationEl.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-comment-dots text-4xl mb-2"></i>
+                        <p>Conversation cleared. Turn agents 'ON' to begin.</p>
+                    </div>
+                `;
+                updateTokenCount(0, true);
+            }
+
+            function updateTokenCount(additionalTokens, absolute = false) {
+                if(absolute) {
+                    tokenCount = additionalTokens;
+                } else {
+                    tokenCount += additionalTokens;
+                }
+                tokenCountEl.textContent = Math.round(tokenCount).toLocaleString();
+            }
+
+            // --- Event Listeners (Re-integrated) ---
+            sendMessageBtn.addEventListener('click', sendMessage);
+            userMessageEl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            clearChatBtn.addEventListener('click', clearConversation);
+
+            settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+            closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+            saveSettingsBtn.addEventListener('click', () => {
+                alert("Settings saved! (Functionality to be fully connected)");
+                settingsModal.classList.add('hidden');
+            });
+            
+            autoDiscussBtn.addEventListener('click', () => alert("Auto-Discuss functionality can be connected here."));
+            summarizeBtn.addEventListener('click', () => alert("Summarize functionality can be connected here."));
+
+            // --- Initial render ---
+            renderAgentLists();
+        });
+    </script>
+
+</body>
+</html>

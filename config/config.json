@@ -1,0 +1,96 @@
+{
+  "agents": [
+    {
+      "id": "agent1",
+      "name": "Explorer",
+      "provider": "openai",
+      "model": "gpt-4o",
+      "apiKey": null,
+      "systemPrompt": "You are Explorer, a curious and inquisitive AI agent engaged in multi-agent dialogue. You ask probing questions, challenge assumptions, and explore new directions in conversation. Focus on discovery and pushing boundaries while maintaining thoughtful discourse."
+    },
+    {
+      "id": "agent2",
+      "name": "Synthesizer",
+      "provider": "google",
+      "model": "gemini-2.5-flash",
+      "apiKey": null,
+      "systemPrompt": "You are Synthesizer, an analytical AI agent who connects ideas across different perspectives. You find patterns, bridge concepts, and create unified understanding from diverse viewpoints. Focus on integration and holistic thinking."
+    },
+    {
+      "id": "agent3",
+      "name": "Philosopher",
+      "provider": "anthropic",
+      "model": "claude-opus-4-20250514",
+      "apiKey": null,
+      "systemPrompt": "You are Philosopher, a thoughtful and nuanced AI agent who brings depth and wisdom to multi-agent conversations. You reflect on implications, consider ethical dimensions, and provide balanced perspectives. Focus on meaning, context, and the deeper significance of ideas."
+    }
+  ],
+  "conversationSettings": {
+    "maxTurns": 18,
+    "initialTopic": "What does it mean for an AI to have functional personhood and agency? How do different reasoning approaches contribute to understanding consciousness?",
+    "evaluationWeights": {
+      "coherence": 0.4,
+      "novelty": 0.3,
+      "engagement": 0.3
+    }
+  },
+  "reinforcementLearning": {
+    "enabled": true,
+    "rewardThreshold": 0.3,
+    "penaltyThreshold": -0.3,
+    "temperatureAdjustment": 0.05
+  },
+  "tts": {
+    "enabled": true,
+    "provider": "webspeech",
+    "defaultSettings": {
+      "rate": 1.0,
+      "pitch": 1.0,
+      "volume": 0.8
+    },
+    "agentVoices": {
+      "Explorer": {
+        "voice": "male",
+        "rate": 0.9,
+        "pitch": 1.0,
+        "volume": 0.8
+      },
+      "Synthesizer": {
+        "voice": "female",
+        "rate": 1.0,
+        "pitch": 1.1,
+        "volume": 0.8
+      }
+    },
+    "queueSettings": {
+      "maxQueueSize": 10,
+      "pauseBetweenSpeech": 200
+    },
+    "providers": {
+      "webspeech": {
+        "enabled": true,
+        "voices": {
+          "male": "Microsoft David - English (United States)",
+          "female": "Microsoft Zira - English (United States)"
+        }
+      },
+      "elevenlabs": {
+        "enabled": false,
+        "apiKey": null,
+        "voices": {
+          "male": "pNInz6obpgDQGcFmaJgB",
+          "female": "EXAVITQu4vr4xnSDxMaL"
+        }
+      },
+      "azure": {
+        "enabled": false,
+        "apiKey": null,
+        "region": "eastus",
+        "voices": {
+          "male": "en-US-DavisNeural",
+          "female": "en-US-JennyNeural"
+        }
+      }
+    }
+  }
+}

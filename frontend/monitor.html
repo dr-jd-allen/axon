@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXON - Autonomous Conversation Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-indicator.active {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        .conversation-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .message-content {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .metrics-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .reward-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .reward-positive {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .reward-negative {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .reward-neutral {
+            background: #f5f5f5;
+            color: #616161;
+        }
+
+        .tts-controls {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tts-controls h3 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-row > div {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .speaking-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff5722;
+            margin-left: 10px;
+            animation: pulse 1.5s infinite;
+            opacity: 0;
+        }
+
+        .speaking-indicator.active {
+            opacity: 1;
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .audio-controls button {
+            padding: 5px 10px;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .volume-slider {
+            width: 100px;
+        }
+
+        .voice-config {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .voice-config h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .tts-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tts-status.disabled {
+            background: #ffebee;
+        }
+
+        .queue-indicator {
+            font-size: 12px;
+            color: #666;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AXON</h1>
+            <p>Autonomous Inter-LLM Communication System</p>
+        </div>
+
+        <div class="main-panel">
+            <div class="controls">
+                <div class="control-group">
+                    <label>Initial Topic</label>
+                    <input type="text" id="topicInput" placeholder="Enter conversation topic..." 
+                           value="What does it mean for an AI to have functional personhood and agency?">
+                </div>
+                <div class="control-group">
+                    <label>Max Turns</label>
+                    <input type="number" id="maxTurns" value="15" min="1" max="50">
+                </div>
+                <div class="control-group">
+                    <label>Action</label>
+                    <button id="startBtn" onclick="startConversation()">Start Conversation</button>
+                </div>
+            </div>
+
+            <div class="tts-controls">
+                <h3>Text-to-Speech Settings</h3>
+                
+                <div class="tts-status" id="ttsStatus">
+                    <span>TTS Status: <strong id="ttsStatusText">Initializing...</strong></span>
+                    <span class="queue-indicator" id="queueIndicator">Queue: 0</span>
+                </div>
+
+                <div class="control-row">
+                    <div>
+                        <label>Enable TTS</label>
+                        <input type="checkbox" id="ttsEnabled" checked onchange="toggleTTS()">
+                    </div>
+                    <div>
+                        <label>TTS Provider</label>
+                        <select id="ttsProvider" onchange="changeTTSProvider()">
+                            <option value="webspeech">Web Speech API</option>
+                            <option value="elevenlabs">ElevenLabs</option>
+                            <option value="azure">Azure Cognitive Services</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Global Speech Rate</label>
+                        <input type="range" id="globalRate" min="0.5" max="2.0" step="0.1" value="1.0" onchange="updateGlobalSettings()">
+                        <span id="globalRateValue">1.0x</span>
+                    </div>
+                    <div>
+                        <label>Global Pitch</label>
+                        <input type="range" id="globalPitch" min="0.5" max="2.0" step="0.1" value="1.0" onchange="updateGlobalSettings()">
+                        <span id="globalPitchValue">1.0x</span>
+                    </div>
+                </div>
+
+                <div class="voice-config">
+                    <h4>Explorer Voice Settings</h4>
+                    <div class="control-row">
+                        <div>
+                            <label>Voice Type</label>
+                            <select id="explorerVoice" onchange="updateAgentVoice('Explorer')">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Rate</label>
+                            <input type="range" id="explorerRate" min="0.5" max="2.0" step="0.1" value="0.9" onchange="updateAgentVoice('Explorer')">
+                            <span id="explorerRateValue">0.9x</span>
+                        </div>
+                        <div>
+                            <label>Pitch</label>
+                            <input type="range" id="explorerPitch" min="0.5" max="2.0" step="0.1" value="1.0" onchange="updateAgentVoice('Explorer')">
+                            <span id="explorerPitchValue">1.0x</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="voice-config">
+                    <h4>Synthesizer Voice Settings</h4>
+                    <div class="control-row">
+                        <div>
+                            <label>Voice Type</label>
+                            <select id="synthesizerVoice" onchange="updateAgentVoice('Synthesizer')">
+                                <option value="female" selected>Female</option>
+                                <option value="male">Male</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Rate</label>
+                            <input type="range" id="synthesizerRate" min="0.5" max="2.0" step="0.1" value="1.0" onchange="updateAgentVoice('Synthesizer')">
+                            <span id="synthesizerRateValue">1.0x</span>
+                        </div>
+                        <div>
+                            <label>Pitch</label>
+                            <input type="range" id="synthesizerPitch" min="0.5" max="2.0" step="0.1" value="1.1" onchange="updateAgentVoice('Synthesizer')">
+                            <span id="synthesizerPitchValue">1.1x</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="audio-controls">
+                    <button onclick="stopAllSpeech()" title="Stop all speech">Stop Speech</button>
+                    <button onclick="clearSpeechQueue()" title="Clear speech queue">Clear Queue</button>
+                    <div class="volume-control">
+                        <label>Volume:</label>
+                        <input type="range" class="volume-slider" id="masterVolume" min="0" max="1" step="0.1" value="0.8" onchange="updateMasterVolume()">
+                        <span id="volumeValue">80%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="statusText">Ready</span>
+                </div>
+                <div class="status-item">
+                    <span>Turn: <strong id="turnCount">0</strong></span>
+                </div>
+                <div class="status-item">
+                    <span>Messages: <strong id="messageCount">0</strong></span>
+                </div>
+            </div>
+
+            <div class="conversation-container" id="conversationContainer">
+                <div style="text-align: center; color: #999; padding: 50px;">
+                    No conversation yet. Click "Start Conversation" to begin.
+                </div>
+            </div>
+
+            <div class="metrics-panel">
+                <div class="metric-card">
+                    <div class="metric-label">Avg Coherence</div>
+                    <div class="metric-value" id="coherenceMetric">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Novelty</div>
+                    <div class="metric-value" id="noveltyMetric">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Engagement</div>
+                    <div class="metric-value" id="engagementMetric">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total Reward</div>
+                    <div class="metric-value" id="totalReward">0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let conversationActive = false;
+        let messageCounter = 0;
+        let turnCounter = 0;
+        let totalReward = 0;
+        
+        // TTS-related variables
+        let ttsEnabled = true;
+        let ttsProvider = 'webspeech';
+        let speechQueue = 0;
+        let currentSpeaker = null;
+        let speechSynthesis = null;
+        let voices = [];
+        
+        // Agent voice configurations
+        let agentVoiceConfigs = {
+            'Explorer': {
+                voice: 'male',
+                rate: 0.9,
+                pitch: 1.0,
+                volume: 0.8
+            },
+            'Synthesizer': {
+                voice: 'female',
+                rate: 1.0,
+                pitch: 1.1,
+                volume: 0.8
+            }
+        };
+
+        // Initialize TTS on page load
+        function initializeTTS() {
+            if ('speechSynthesis' in window) {
+                speechSynthesis = window.speechSynthesis;
+                
+                // Load voices
+                function loadVoices() {
+                    voices = speechSynthesis.getVoices();
+                    updateTTSStatus('Ready', false);
+                }
+                
+                speechSynthesis.onvoiceschanged = loadVoices;
+                loadVoices();
+            } else {
+                updateTTSStatus('Not supported', true);
+                document.getElementById('ttsEnabled').disabled = true;
+            }
+        }
+        
+        // Update TTS status display
+        function updateTTSStatus(status, isError = false) {
+            const statusEl = document.getElementById('ttsStatusText');
+            const containerEl = document.getElementById('ttsStatus');
+            
+            statusEl.textContent = status;
+            containerEl.className = `tts-status ${isError ? 'disabled' : ''}`;
+        }
+        
+        // Toggle TTS on/off
+        function toggleTTS() {
+            ttsEnabled = document.getElementById('ttsEnabled').checked;
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'tts-config',
+                    config: { enabled: ttsEnabled }
+                }));
+            }
+            
+            updateTTSStatus(ttsEnabled ? 'Ready' : 'Disabled', !ttsEnabled);
+            
+            if (!ttsEnabled) {
+                stopAllSpeech();
+            }
+        }
+        
+        // Change TTS provider
+        function changeTTSProvider() {
+            ttsProvider = document.getElementById('ttsProvider').value;
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'tts-config',
+                    config: { provider: ttsProvider }
+                }));
+            }
+            
+            updateTTSStatus(`Ready (${ttsProvider})`, false);
+        }
+        
+        // Update global TTS settings
+        function updateGlobalSettings() {
+            const rate = parseFloat(document.getElementById('globalRate').value);
+            const pitch = parseFloat(document.getElementById('globalPitch').value);
+            
+            document.getElementById('globalRateValue').textContent = rate.toFixed(1) + 'x';
+            document.getElementById('globalPitchValue').textContent = pitch.toFixed(1) + 'x';
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'tts-config',
+                    config: {
+                        defaultSettings: { rate, pitch }
+                    }
+                }));
+            }
+        }
+        
+        // Update agent-specific voice settings
+        function updateAgentVoice(agentName) {
+            const voice = document.getElementById(`${agentName.toLowerCase()}Voice`).value;
+            const rate = parseFloat(document.getElementById(`${agentName.toLowerCase()}Rate`).value);
+            const pitch = parseFloat(document.getElementById(`${agentName.toLowerCase()}Pitch`).value);
+            
+            document.getElementById(`${agentName.toLowerCase()}RateValue`).textContent = rate.toFixed(1) + 'x';
+            document.getElementById(`${agentName.toLowerCase()}PitchValue`).textContent = pitch.toFixed(1) + 'x';
+            
+            agentVoiceConfigs[agentName] = { voice, rate, pitch, volume: 0.8 };
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'tts-config',
+                    config: {
+                        agentVoices: { [agentName]: agentVoiceConfigs[agentName] }
+                    }
+                }));
+            }
+        }
+        
+        // Update master volume
+        function updateMasterVolume() {
+            const volume = parseFloat(document.getElementById('masterVolume').value);
+            document.getElementById('volumeValue').textContent = Math.round(volume * 100) + '%';
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'tts-config',
+                    config: {
+                        defaultSettings: { volume }
+                    }
+                }));
+            }
+        }
+        
+        // Stop all speech
+        function stopAllSpeech() {
+            if (speechSynthesis) {
+                speechSynthesis.cancel();
+            }
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'tts-stop'
+                }));
+            }
+            
+            clearSpeakingIndicators();
+            updateQueueIndicator(0);
+        }
+        
+        // Clear speech queue
+        function clearSpeechQueue() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'tts-clear-queue'
+                }));
+            }
+            
+            updateQueueIndicator(0);
+        }
+        
+        // Handle Web Speech API synthesis
+        function speakWithWebSpeech(text, agentName, settings) {
+            if (!speechSynthesis || !ttsEnabled) return;
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Find appropriate voice
+            const voiceType = settings.voice;
+            let selectedVoice = null;
+            
+            if (voiceType === 'male') {
+                selectedVoice = voices.find(voice => 
+                    voice.name.toLowerCase().includes('david') || 
+                    voice.name.toLowerCase().includes('male') ||
+                    voice.name.toLowerCase().includes('mark')
+                );
+            } else {
+                selectedVoice = voices.find(voice => 
+                    voice.name.toLowerCase().includes('zira') || 
+                    voice.name.toLowerCase().includes('female') ||
+                    voice.name.toLowerCase().includes('jenny')
+                );
+            }
+            
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+            
+            utterance.rate = settings.rate;
+            utterance.pitch = settings.pitch;
+            utterance.volume = settings.volume;
+            
+            utterance.onstart = () => {
+                setSpeakingIndicator(agentName, true);
+            };
+            
+            utterance.onend = () => {
+                setSpeakingIndicator(agentName, false);
+            };
+            
+            utterance.onerror = (error) => {
+                console.error('Speech synthesis error:', error);
+                setSpeakingIndicator(agentName, false);
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Set speaking indicator for agent
+        function setSpeakingIndicator(agentName, speaking) {
+            const indicator = document.getElementById(`speaker-${agentName}`);
+            if (indicator) {
+                if (speaking) {
+                    indicator.classList.add('active');
+                    currentSpeaker = agentName;
+                } else {
+                    indicator.classList.remove('active');
+                    if (currentSpeaker === agentName) {
+                        currentSpeaker = null;
+                    }
+                }
+            }
+        }
+        
+        // Clear all speaking indicators
+        function clearSpeakingIndicators() {
+            const indicators = document.querySelectorAll('.speaking-indicator');
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            currentSpeaker = null;
+        }
+        
+        // Update queue indicator
+        function updateQueueIndicator(count) {
+            document.getElementById('queueIndicator').textContent = `Queue: ${count}`;
+            speechQueue = count;
+        }
+
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:3002');
+            
+            ws.onopen = () => {
+                console.log('Connected to AXON backend');
+                updateStatus('Connected', true);
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateStatus('Error', false);
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from backend');
+                updateStatus('Disconnected', false);
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function handleMessage(data) {
+            switch(data.type) {
+                case 'conversation-start':
+                    clearConversation();
+                    updateStatus('Active', true);
+                    conversationActive = true;
+                    break;
+                
+                case 'message':
+                    addMessage(data.data);
+                    
+                    // Trigger TTS for the message
+                    if (ttsEnabled && data.data.message) {
+                        const agentConfig = agentVoiceConfigs[data.data.agent] || agentVoiceConfigs['Explorer'];
+                        speakWithWebSpeech(data.data.message, data.data.agent, agentConfig);
+                    }
+                    break;
+                
+                case 'agent-reward':
+                    updateReward(data.data);
+                    break;
+                
+                case 'metrics-update':
+                    updateMetrics(data.data);
+                    break;
+                
+                case 'conversation-end':
+                    updateStatus('Complete', false);
+                    conversationActive = false;
+                    clearSpeakingIndicators();
+                    break;
+                
+                case 'error':
+                    showError(data.message);
+                    break;
+                
+                // TTS-specific message types
+                case 'tts-status':
+                    updateTTSStatus(data.status, data.error);
+                    break;
+                
+                case 'tts-queue-update':
+                    updateQueueIndicator(data.queueLength);
+                    break;
+                
+                case 'tts-speech-start':
+                    setSpeakingIndicator(data.agent, true);
+                    break;
+                
+                case 'tts-speech-end':
+                    setSpeakingIndicator(data.agent, false);
+                    break;
+                
+                case 'webspeech-request':
+                    // Handle server request for Web Speech synthesis
+                    const settings = agentVoiceConfigs[data.agent] || agentVoiceConfigs['Explorer'];
+                    speakWithWebSpeech(data.text, data.agent, settings);
+                    break;
+            }
+        }
+
+        function startConversation() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Not connected to backend. Please wait...');
+                return;
+            }
+
+            const topic = document.getElementById('topicInput').value;
+            const maxTurns = parseInt(document.getElementById('maxTurns').value);
+
+            ws.send(JSON.stringify({
+                type: 'start-conversation',
+                topic: topic,
+                maxTurns: maxTurns
+            }));
+
+            document.getElementById('startBtn').disabled = true;
+        }
+
+        function clearConversation() {
+            document.getElementById('conversationContainer').innerHTML = '';
+            messageCounter = 0;
+            turnCounter = 0;
+            totalReward = 0;
+            updateCounters();
+        }
+
+        function addMessage(messageData) {
+            const container = document.getElementById('conversationContainer');
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            const rewardClass = messageData.reward > 0 ? 'reward-positive' : 
+                               messageData.reward < 0 ? 'reward-negative' : 'reward-neutral';
+            const rewardSymbol = messageData.reward > 0 ? '↑' : 
+                                messageData.reward < 0 ? '↓' : '→';
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span>${messageData.agent} (Turn ${messageData.turn + 1})<span class="speaking-indicator" id="speaker-${messageData.agent}"></span></span>
+                    <span class="reward-indicator ${rewardClass}">
+                        ${rewardSymbol} ${messageData.reward ? messageData.reward.toFixed(2) : '0.00'}
+                    </span>
+                </div>
+                <div class="message-content">${messageData.message}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            messageCounter++;
+            turnCounter = messageData.turn + 1;
+            updateCounters();
+        }
+
+        function updateReward(rewardData) {
+            totalReward += rewardData.reward;
+            document.getElementById('totalReward').textContent = totalReward.toFixed(2);
+        }
+
+        function updateMetrics(metrics) {
+            document.getElementById('coherenceMetric').textContent = 
+                (metrics.coherence * 100).toFixed(0) + '%';
+            document.getElementById('noveltyMetric').textContent = 
+                (metrics.novelty * 100).toFixed(0) + '%';
+            document.getElementById('engagementMetric').textContent = 
+                (metrics.engagement * 100).toFixed(0) + '%';
+        }
+
+        function updateCounters() {
+            document.getElementById('turnCount').textContent = turnCounter;
+            document.getElementById('messageCount').textContent = messageCounter;
+        }
+
+        function updateStatus(text, active) {
+            document.getElementById('statusText').textContent = text;
+            const indicator = document.getElementById('statusIndicator');
+            if (active) {
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+            
+            if (text === 'Complete' || text === 'Error') {
+                document.getElementById('startBtn').disabled = false;
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('conversationContainer');
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'background: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin: 10px 0;';
+            errorDiv.textContent = `Error: ${message}`;
+            container.appendChild(errorDiv);
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            initializeTTS();
+            connectWebSocket();
+        };
+    </script>
+</body>
+</html>

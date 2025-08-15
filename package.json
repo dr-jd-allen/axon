@@ -1,0 +1,36 @@
+{
+  "name": "axon-autonomous",
+  "version": "2.0.0",
+  "description": "AXON - Autonomous Inter-LLM Communication System with Reinforcement Learning",
+  "main": "autonomous-server.js",
+  "scripts": {
+    "start": "node autonomous-server.js",
+    "dev": "nodemon autonomous-server.js",
+    "test": "node autonomous-launcher.js",
+    "interactive": "node autonomous-launcher.js --interactive"
+  },
+  "keywords": [
+    "AI",
+    "LLM",
+    "autonomous",
+    "communication",
+    "reinforcement-learning"
+  ],
+  "author": "AXON Team",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.57.0",
+    "axios": "^1.6.2",
+    "chalk": "^4.1.2",
+    "chromadb": "^1.7.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "openai": "^4.104.0",
+    "sqlite3": "^5.1.6",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

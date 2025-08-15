@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXON - Autonomous AI Communication Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #f5f5f5;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: #eeeeee;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            margin-bottom: -2px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+
+        /* Conversation Tab Styles */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .conversation-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Settings Tab Styles */
+        .settings-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .settings-section h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .api-key-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .api-key-input input {
+            flex: 1;
+            font-family: monospace;
+        }
+
+        .api-key-input button {
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .agent-config {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .agent-header h4 {
+            color: #764ba2;
+        }
+
+        .remove-agent {
+            background: #ff4444;
+            padding: 5px 15px;
+            font-size: 12px;
+        }
+
+        .add-agent-btn {
+            background: #4caf50;
+            margin-top: 15px;
+        }
+
+        .parameter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .slider-control {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .slider-control input[type="range"] {
+            width: 100%;
+        }
+
+        .slider-value {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #4caf50;
+            color: white;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+
+        .tts-provider-select {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .provider-card {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .provider-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .provider-card.selected {
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            border-color: #667eea;
+        }
+
+        .provider-card h5 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .provider-status {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .voice-test-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .model-dropdown {
+            position: relative;
+        }
+
+        .model-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .model-suggestions.show {
+            display: block;
+        }
+
+        .model-suggestion {
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .model-suggestion:hover {
+            background: #f0f0f0;
+        }
+
+        .model-suggestion .model-name {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .model-suggestion .model-provider {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Status indicators */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.connected {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-badge.disconnected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-badge.partial {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AXON</h1>
+            <p>Autonomous eXpert Organizational Network</p>
+        </div>
+
+        <div class="main-panel">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('conversation')">Conversation</button>
+                <button class="tab" onclick="switchTab('settings')">Settings</button>
+                <button class="tab" onclick="switchTab('agents')">Agents</button>
+                <button class="tab" onclick="switchTab('tts')">Voice/TTS</button>
+                <button class="tab" onclick="switchTab('memory')">Memory</button>
+                <button class="tab" onclick="switchTab('metrics')">Metrics</button>
+            </div>
+
+            <!-- Conversation Tab -->
+            <div id="conversation-tab" class="tab-content active">
+                <div style="padding: 10px; background: #f5f5f5; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: #ccc;" id="connectionIndicator"></div>
+                        <span id="connectionStatus">Connecting...</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 12px; color: #666;">Server: </span>
+                        <span style="font-size: 12px; color: #667eea;" id="serverUrl">ws://localhost:3001</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group" style="flex: 2;">
+                        <label>Initial Topic</label>
+                        <input type="text" id="topicInput" placeholder="Enter conversation topic..." 
+                               value="What does it mean for an AI to have functional personhood and agency?">
+                    </div>
+                    <div class="control-group">
+                        <label>Max Turns</label>
+                        <input type="number" id="maxTurns" value="15" min="1" max="50">
+                    </div>
+                    <div class="control-group">
+                        <label>Action</label>
+                        <button id="startBtn" onclick="startConversation()">Start Conversation</button>
+                    </div>
+                </div>
+
+                <div class="conversation-container" id="conversationContainer">
+                    <div style="text-align: center; color: #999; padding: 50px;">
+                        No conversation yet. Click "Start Conversation" to begin.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content">
+                <div class="settings-section">
+                    <h3>API Keys</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>Anthropic API Key (Claude)</label>
+                            <div class="api-key-input">
+                                <input type="password" id="anthropic-api-key" placeholder="sk-ant-api03-...">
+                                <button onclick="testApiKey('anthropic')">Test</button>
+                            </div>
+                            <span class="status-badge" id="anthropic-status">Not Set</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>OpenAI API Key (GPT)</label>
+                            <div class="api-key-input">
+                                <input type="password" id="openai-api-key" placeholder="sk-proj-... (no 'Bearer' prefix)">
+                                <button onclick="testApiKey('openai')">Test</button>
+                            </div>
+                            <span class="status-badge" id="openai-status">Not Set</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>Google API Key (Gemini)</label>
+                            <div class="api-key-input">
+                                <input type="password" id="google-api-key" placeholder="AIza...">
+                                <button onclick="testApiKey('google')">Test</button>
+                            </div>
+                            <span class="status-badge" id="google-status">Not Set</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>ElevenLabs API Key</label>
+                            <div class="api-key-input">
+                                <input type="password" id="elevenlabs-api-key" placeholder="xi-...">
+                                <button onclick="testApiKey('elevenlabs')">Test</button>
+                            </div>
+                            <span class="status-badge" id="elevenlabs-status">Not Set</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>Speechify API Key</label>
+                            <div class="api-key-input">
+                                <input type="password" id="speechify-api-key" placeholder="sp-...">
+                                <button onclick="testApiKey('speechify')">Test</button>
+                            </div>
+                            <span class="status-badge" id="speechify-status">Not Set</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>Azure Speech Key</label>
+                            <div class="api-key-input">
+                                <input type="password" id="azure-api-key" placeholder="...">
+                                <button onclick="testApiKey('azure')">Test</button>
+                            </div>
+                            <span class="status-badge" id="azure-status">Not Set</span>
+                        </div>
+                    </div>
+                    <button onclick="saveApiKeys()" style="margin-top: 20px;">Save All API Keys</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Model Parameters</h3>
+                    <div class="parameter-controls">
+                        <div class="slider-control">
+                            <label>Temperature <span style="font-size: 11px;">(Creativity)</span></label>
+                            <input type="range" id="temperature" min="0" max="2" step="0.01" value="0.7">
+                            <div class="slider-value" id="temperature-value">0.70</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Max Tokens</label>
+                            <input type="range" id="max-tokens" min="100" max="4000" step="50" value="500">
+                            <div class="slider-value" id="max-tokens-value">500</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Top P <span style="font-size: 11px;">(Nucleus)</span></label>
+                            <input type="range" id="top-p" min="0" max="1" step="0.01" value="0.95">
+                            <div class="slider-value" id="top-p-value">0.95</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Top K <span style="font-size: 11px;">(Vocab Limit)</span></label>
+                            <input type="range" id="top-k" min="0" max="100" step="1" value="40">
+                            <div class="slider-value" id="top-k-value">40</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Frequency Penalty</label>
+                            <input type="range" id="freq-penalty" min="-2" max="2" step="0.1" value="0">
+                            <div class="slider-value" id="freq-penalty-value">0.0</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Presence Penalty</label>
+                            <input type="range" id="presence-penalty" min="-2" max="2" step="0.1" value="0">
+                            <div class="slider-value" id="presence-penalty-value">0.0</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Repetition Penalty</label>
+                            <input type="range" id="rep-penalty" min="0.5" max="2" step="0.05" value="1">
+                            <div class="slider-value" id="rep-penalty-value">1.00</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Context Window</label>
+                            <input type="range" id="context-window" min="1" max="20" step="1" value="10">
+                            <div class="slider-value" id="context-window-value">10</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Reinforcement Learning</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>Learning Enabled</label>
+                            <select id="rl-enabled">
+                                <option value="true">Enabled</option>
+                                <option value="false">Disabled</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>Coherence Weight</label>
+                            <input type="number" id="coherence-weight" min="0" max="1" step="0.1" value="0.4">
+                        </div>
+                        <div class="setting-item">
+                            <label>Novelty Weight</label>
+                            <input type="number" id="novelty-weight" min="0" max="1" step="0.1" value="0.3">
+                        </div>
+                        <div class="setting-item">
+                            <label>Engagement Weight</label>
+                            <input type="number" id="engagement-weight" min="0" max="1" step="0.1" value="0.3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agents Tab -->
+            <div id="agents-tab" class="tab-content">
+                <div id="agents-container">
+                    <!-- Agents will be dynamically added here -->
+                </div>
+                <button class="add-agent-btn" onclick="addNewAgent()">+ Add New Agent</button>
+            </div>
+
+            <!-- TTS Tab -->
+            <div id="tts-tab" class="tab-content">
+                <div class="settings-section">
+                    <h3>TTS Provider</h3>
+                    <div class="tts-provider-select" id="tts-providers">
+                        <div class="provider-card" data-provider="webspeech" onclick="selectTTSProvider('webspeech')">
+                            <h5>Web Speech API</h5>
+                            <div class="provider-status">Free, Browser-based</div>
+                        </div>
+                        <div class="provider-card" data-provider="elevenlabs" onclick="selectTTSProvider('elevenlabs')">
+                            <h5>ElevenLabs</h5>
+                            <div class="provider-status">Premium voices, Natural</div>
+                        </div>
+                        <div class="provider-card" data-provider="speechify" onclick="selectTTSProvider('speechify')">
+                            <h5>Speechify</h5>
+                            <div class="provider-status">Celebrity voices, HD quality</div>
+                        </div>
+                        <div class="provider-card" data-provider="azure" onclick="selectTTSProvider('azure')">
+                            <h5>Azure TTS</h5>
+                            <div class="provider-status">Microsoft voices, Neural</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Voice Configuration</h3>
+                    <div id="voice-configs">
+                        <!-- Voice configurations will be added here -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Global TTS Settings</h3>
+                    <div class="parameter-controls">
+                        <div class="slider-control">
+                            <label>Speech Rate</label>
+                            <input type="range" id="tts-rate" min="0.5" max="2" step="0.1" value="1">
+                            <div class="slider-value" id="tts-rate-value">1.0</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Pitch</label>
+                            <input type="range" id="tts-pitch" min="0.5" max="2" step="0.1" value="1">
+                            <div class="slider-value" id="tts-pitch-value">1.0</div>
+                        </div>
+                        <div class="slider-control">
+                            <label>Volume</label>
+                            <input type="range" id="tts-volume" min="0" max="1" step="0.1" value="1">
+                            <div class="slider-value" id="tts-volume-value">1.0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Tab -->
+            <div id="memory-tab" class="tab-content">
+                <div class="settings-section">
+                    <h3>Session Memories</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>Total Sessions</label>
+                            <div style="font-size: 24px; color: #667eea; font-weight: bold;" id="total-sessions">0</div>
+                        </div>
+                        <div class="setting-item">
+                            <label>Memory Usage</label>
+                            <div style="font-size: 24px; color: #764ba2; font-weight: bold;" id="memory-usage">0 MB</div>
+                        </div>
+                        <div class="setting-item">
+                            <label>Last Sync</label>
+                            <div style="font-size: 14px; color: #666;" id="last-sync">Never</div>
+                        </div>
+                    </div>
+                    <div id="recent-sessions" style="margin-top: 20px;">
+                        <!-- Recent sessions will be displayed here -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Agent Evolution</h3>
+                    <div id="agent-evolution">
+                        <!-- Agent personality evolution will be displayed here -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Knowledge Base</h3>
+                    <div class="controls" style="margin-bottom: 20px;">
+                        <div class="control-group" style="flex: 2;">
+                            <label>Search Knowledge</label>
+                            <input type="text" id="knowledge-search" placeholder="Search topics, concepts, consensus...">
+                        </div>
+                        <div class="control-group">
+                            <label>&nbsp;</label>
+                            <button onclick="searchKnowledge()">Search</button>
+                        </div>
+                    </div>
+                    <div id="knowledge-results">
+                        <!-- Knowledge search results here -->
+                    </div>
+                    
+                    <h4 style="margin-top: 30px; color: #667eea;">Consensus Topics</h4>
+                    <div id="consensus-topics" style="margin-top: 15px;">
+                        <!-- Topics where consensus was reached -->
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Memory Management</h3>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>Auto-Save Sessions</label>
+                            <select id="auto-save-memory">
+                                <option value="true" selected>Enabled</option>
+                                <option value="false">Disabled</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>Memory Retention (days)</label>
+                            <input type="number" id="memory-retention" value="30" min="1" max="365">
+                        </div>
+                        <div class="setting-item">
+                            <label>Vector Similarity Threshold</label>
+                            <input type="number" id="similarity-threshold" value="0.7" min="0" max="1" step="0.1">
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button onclick="exportMemories()">Export Memories</button>
+                        <button onclick="clearOldMemories()" style="background: #ff9800;">Clear Old Memories</button>
+                        <button onclick="resetMemories()" style="background: #f44336;">Reset All Memories</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Tab -->
+            <div id="metrics-tab" class="tab-content">
+                <div class="settings-section">
+                    <h3>Conversation Metrics</h3>
+                    <div id="metrics-display">
+                        <!-- Metrics will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="save-indicator" id="saveIndicator">Settings Saved!</div>
+
+    <script>
+        // Global state
+        let ws = null;
+        let config = {
+            agents: [],
+            apiKeys: {},
+            ttsProvider: 'webspeech',
+            modelParameters: {},
+            rlSettings: {}
+        };
+
+        // Available models
+        const availableModels = [
+            // Anthropic
+            { provider: 'anthropic', model: 'claude-opus-4-20250514', name: 'Claude Opus 4' },
+            { provider: 'anthropic', model: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
+            { provider: 'anthropic', model: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+            { provider: 'anthropic', model: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet' },
+            
+            // OpenAI
+            { provider: 'openai', model: 'gpt-4o', name: 'GPT-4o' },
+            { provider: 'openai', model: 'gpt-4-turbo-preview', name: 'GPT-4 Turbo' },
+            { provider: 'openai', model: 'gpt-4', name: 'GPT-4' },
+            { provider: 'openai', model: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
+            { provider: 'openai', model: 'o3-pro-deep-research', name: 'O3 Pro Deep Research' },
+            { provider: 'openai', model: 'o3-pro', name: 'O3 Pro' },
+            
+            // Google
+            { provider: 'google', model: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+            { provider: 'google', model: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+            { provider: 'google', model: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+            { provider: 'google', model: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' }
+        ];
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Load data for specific tabs
+            if (tabName === 'agents') {
+                loadAgents();
+            } else if (tabName === 'tts') {
+                loadTTSConfig();
+            } else if (tabName === 'memory') {
+                loadMemoryData();
+            } else if (tabName === 'metrics') {
+                loadMetrics();
+            }
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            updateConnectionStatus('Connecting...', '#ff9800');
+            
+            // Connect to main backend server
+            const wsPort = 3001;
+            ws = new WebSocket(`ws://localhost:${wsPort}`);
+            
+            ws.onopen = () => {
+                console.log('Connected to AXON backend');
+                updateConnectionStatus('Connected', '#4caf50');
+                loadConfiguration();
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('Error', '#f44336');
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from backend');
+                updateConnectionStatus('Disconnected', '#f44336');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+        
+        function updateConnectionStatus(status, color) {
+            const indicator = document.getElementById('connectionIndicator');
+            const statusText = document.getElementById('connectionStatus');
+            
+            if (indicator) {
+                indicator.style.background = color;
+                if (status === 'Connected') {
+                    indicator.style.animation = 'pulse 2s infinite';
+                } else {
+                    indicator.style.animation = 'none';
+                }
+            }
+            
+            if (statusText) {
+                statusText.textContent = status;
+            }
+        }
+
+        // Load configuration from backend
+        async function loadConfiguration() {
+            try {
+                const response = await fetch('/api/config');
+                if (response.ok) {
+                    config = await response.json();
+                    updateUIFromConfig();
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+            }
+        }
+
+        // Update UI from config
+        function updateUIFromConfig() {
+            // Update model parameters
+            if (config.modelParameters) {
+                document.getElementById('temperature').value = config.modelParameters.temperature || 0.7;
+                document.getElementById('max-tokens').value = config.modelParameters.maxTokens || 500;
+                updateSliderValues();
+            }
+
+            // Update RL settings
+            if (config.conversationSettings) {
+                document.getElementById('coherence-weight').value = config.conversationSettings.evaluationWeights?.coherence || 0.4;
+                document.getElementById('novelty-weight').value = config.conversationSettings.evaluationWeights?.novelty || 0.3;
+                document.getElementById('engagement-weight').value = config.conversationSettings.evaluationWeights?.engagement || 0.3;
+            }
+        }
+
+        // Clean API key (remove common prefixes/issues)
+        function cleanApiKey(key, provider) {
+            if (!key) return '';
+            
+            key = key.trim();
+            
+            // Remove "Bearer" prefix if accidentally included for OpenAI
+            if (provider === 'openai' && key.toLowerCase().startsWith('bearer ')) {
+                key = key.substring(7).trim();
+            }
+            
+            // Remove quotes if wrapped
+            if ((key.startsWith('"') && key.endsWith('"')) || 
+                (key.startsWith("'") && key.endsWith("'"))) {
+                key = key.slice(1, -1);
+            }
+            
+            return key;
+        }
+        
+        // Save API keys
+        async function saveApiKeys() {
+            const apiKeys = {
+                anthropic: cleanApiKey(document.getElementById('anthropic-api-key').value, 'anthropic'),
+                openai: cleanApiKey(document.getElementById('openai-api-key').value, 'openai'),
+                google: cleanApiKey(document.getElementById('google-api-key').value, 'google'),
+                elevenlabs: cleanApiKey(document.getElementById('elevenlabs-api-key').value, 'elevenlabs'),
+                speechify: cleanApiKey(document.getElementById('speechify-api-key').value, 'speechify'),
+                azure: cleanApiKey(document.getElementById('azure-api-key').value, 'azure')
+            };
+
+            try {
+                const response = await fetch('/api/settings/keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(apiKeys)
+                });
+
+                if (response.ok) {
+                    showSaveIndicator();
+                    // Test each key
+                    for (const provider of Object.keys(apiKeys)) {
+                        if (apiKeys[provider]) {
+                            testApiKey(provider);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving API keys:', error);
+            }
+        }
+
+        // Test API key
+        async function testApiKey(provider) {
+            const keyInput = document.getElementById(`${provider}-api-key`);
+            const statusBadge = document.getElementById(`${provider}-status`);
+            
+            if (!keyInput.value || keyInput.value.trim() === '') {
+                statusBadge.textContent = 'Not Set';
+                statusBadge.className = 'status-badge disconnected';
+                alert('Please enter an API key first');
+                return;
+            }
+            
+            // Clean the API key before testing
+            const cleanedKey = cleanApiKey(keyInput.value, provider);
+
+            statusBadge.textContent = 'Testing...';
+            statusBadge.className = 'status-badge partial';
+
+            try {
+                const response = await fetch('/api/test-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        provider: provider, 
+                        apiKey: cleanedKey
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.valid) {
+                    statusBadge.textContent = 'Valid';
+                    statusBadge.className = 'status-badge connected';
+                    console.log(`${provider} API key validated successfully`);
+                } else {
+                    statusBadge.textContent = 'Invalid';
+                    statusBadge.className = 'status-badge disconnected';
+                    if (result.details || result.error) {
+                        alert(`${provider} API Key Error:\n${result.details || result.error}`);
+                    }
+                }
+            } catch (error) {
+                console.error(`Error testing ${provider} key:`, error);
+                statusBadge.textContent = 'Error';
+                statusBadge.className = 'status-badge disconnected';
+                alert(`Failed to test ${provider} API key:\n${error.message}`);
+            }
+        }
+
+        // Agent management
+        function loadAgents() {
+            const container = document.getElementById('agents-container');
+            container.innerHTML = '';
+
+            const agents = config.agents || [];
+            agents.forEach((agent, index) => {
+                container.appendChild(createAgentElement(agent, index));
+            });
+        }
+
+        function createAgentElement(agent, index) {
+            const div = document.createElement('div');
+            div.className = 'agent-config';
+            div.innerHTML = `
+                <div class="agent-header">
+                    <h4>Agent ${index + 1}: ${agent.name || 'Unnamed'}</h4>
+                    <button class="remove-agent" onclick="removeAgent(${index})">Remove</button>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label>Name</label>
+                        <input type="text" id="agent-name-${index}" value="${agent.name || ''}" 
+                               onchange="updateAgent(${index}, 'name', this.value)">
+                    </div>
+                    <div class="setting-item">
+                        <label>Provider</label>
+                        <select id="agent-provider-${index}" onchange="updateAgentProvider(${index}, this.value)">
+                            <option value="anthropic" ${agent.provider === 'anthropic' ? 'selected' : ''}>Anthropic</option>
+                            <option value="openai" ${agent.provider === 'openai' ? 'selected' : ''}>OpenAI</option>
+                            <option value="google" ${agent.provider === 'google' ? 'selected' : ''}>Google</option>
+                        </select>
+                    </div>
+                    <div class="setting-item model-dropdown">
+                        <label>Model</label>
+                        <input type="text" id="agent-model-${index}" value="${agent.model || ''}" 
+                               onchange="updateAgent(${index}, 'model', this.value)"
+                               onfocus="showModelSuggestions(${index})"
+                               onblur="hideModelSuggestions(${index})">
+                        <div class="model-suggestions" id="model-suggestions-${index}">
+                            ${createModelSuggestions(agent.provider)}
+                        </div>
+                    </div>
+                    <div class="setting-item" style="grid-column: 1 / -1;">
+                        <label>System Prompt</label>
+                        <textarea id="agent-prompt-${index}" 
+                                  onchange="updateAgent(${index}, 'systemPrompt', this.value)">${agent.systemPrompt || ''}</textarea>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function createModelSuggestions(provider) {
+            const models = availableModels.filter(m => m.provider === provider);
+            return models.map(m => `
+                <div class="model-suggestion" onclick="selectModel('${m.model}')">
+                    <div class="model-name">${m.name}</div>
+                    <div class="model-provider">${m.model}</div>
+                </div>
+            `).join('');
+        }
+
+        function showModelSuggestions(index) {
+            setTimeout(() => {
+                document.getElementById(`model-suggestions-${index}`).classList.add('show');
+            }, 100);
+        }
+
+        function hideModelSuggestions(index) {
+            setTimeout(() => {
+                document.getElementById(`model-suggestions-${index}`).classList.remove('show');
+            }, 200);
+        }
+
+        function addNewAgent() {
+            const newAgent = {
+                id: `agent${config.agents.length + 1}`,
+                name: `Agent ${config.agents.length + 1}`,
+                provider: 'anthropic',
+                model: 'claude-opus-4-20250514',
+                systemPrompt: ''
+            };
+            
+            config.agents.push(newAgent);
+            loadAgents();
+            saveConfiguration();
+        }
+
+        function removeAgent(index) {
+            if (confirm('Remove this agent?')) {
+                config.agents.splice(index, 1);
+                loadAgents();
+                saveConfiguration();
+            }
+        }
+
+        function updateAgent(index, field, value) {
+            config.agents[index][field] = value;
+            saveConfiguration();
+        }
+
+        function updateAgentProvider(index, provider) {
+            config.agents[index].provider = provider;
+            // Update model suggestions
+            const suggestionsDiv = document.getElementById(`model-suggestions-${index}`);
+            suggestionsDiv.innerHTML = createModelSuggestions(provider);
+            saveConfiguration();
+        }
+
+        // TTS Configuration
+        function loadTTSConfig() {
+            // Update provider selection
+            const currentProvider = config.tts?.provider || 'webspeech';
+            document.querySelectorAll('.provider-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.provider === currentProvider);
+            });
+
+            // Load voice configs for each agent
+            const voiceConfigsDiv = document.getElementById('voice-configs');
+            voiceConfigsDiv.innerHTML = '';
+
+            config.agents.forEach((agent, index) => {
+                const voiceConfig = config.tts?.agentVoices?.[agent.name] || {};
+                const div = document.createElement('div');
+                div.className = 'agent-config';
+                div.innerHTML = `
+                    <h4>${agent.name} Voice Settings</h4>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label>Voice</label>
+                            <select id="voice-${index}" onchange="updateVoice(${index}, this.value)">
+                                ${getVoiceOptions(currentProvider, voiceConfig.voice)}
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label>Speed</label>
+                            <input type="range" min="0.5" max="2" step="0.1" 
+                                   value="${voiceConfig.rate || 1}"
+                                   onchange="updateVoiceParam(${index}, 'rate', this.value)">
+                        </div>
+                        <div class="setting-item">
+                            <label>Pitch</label>
+                            <input type="range" min="0.5" max="2" step="0.1" 
+                                   value="${voiceConfig.pitch || 1}"
+                                   onchange="updateVoiceParam(${index}, 'pitch', this.value)">
+                        </div>
+                    </div>
+                    <div class="voice-test-controls">
+                        <input type="text" id="test-text-${index}" placeholder="Test text..." 
+                               value="Hello, I am ${agent.name}. How can I help you today?">
+                        <button onclick="testVoice(${index})">Test Voice</button>
+                    </div>
+                `;
+                voiceConfigsDiv.appendChild(div);
+            });
+        }
+
+        function getVoiceOptions(provider, currentVoice) {
+            let options = '';
+            
+            if (provider === 'webspeech') {
+                // These will be populated by the browser
+                options = `
+                    <option value="default">Default</option>
+                    <option value="Microsoft David Desktop">Male (David)</option>
+                    <option value="Microsoft Zira Desktop">Female (Zira)</option>
+                `;
+            } else if (provider === 'elevenlabs') {
+                options = `
+                    <option value="rachel">Rachel (Female)</option>
+                    <option value="domi">Domi (Female)</option>
+                    <option value="bella">Bella (Female)</option>
+                    <option value="antoni">Antoni (Male)</option>
+                    <option value="josh">Josh (Male)</option>
+                    <option value="arnold">Arnold (Male)</option>
+                `;
+            } else if (provider === 'speechify') {
+                options = `
+                    <option value="mr-beast">Mr. Beast</option>
+                    <option value="snoop-dogg">Snoop Dogg</option>
+                    <option value="gwyneth-paltrow">Gwyneth Paltrow</option>
+                    <option value="john">John (Natural)</option>
+                    <option value="sarah">Sarah (Natural)</option>
+                `;
+            } else if (provider === 'azure') {
+                options = `
+                    <option value="en-US-JennyNeural">Jenny (Female)</option>
+                    <option value="en-US-GuyNeural">Guy (Male)</option>
+                    <option value="en-US-AriaNeural">Aria (Female)</option>
+                    <option value="en-US-DavisNeural">Davis (Male)</option>
+                `;
+            }
+            
+            return options;
+        }
+
+        function selectTTSProvider(provider) {
+            config.tts = config.tts || {};
+            config.tts.provider = provider;
+            
+            document.querySelectorAll('.provider-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.provider === provider);
+            });
+            
+            loadTTSConfig();
+            saveConfiguration();
+        }
+
+        function testVoice(agentIndex) {
+            const text = document.getElementById(`test-text-${agentIndex}`).value;
+            const agent = config.agents[agentIndex];
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'test-voice',
+                    agentName: agent.name,
+                    text: text
+                }));
+            }
+        }
+
+        // Save configuration
+        async function saveConfiguration() {
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    showSaveIndicator();
+                }
+            } catch (error) {
+                console.error('Error saving config:', error);
+            }
+        }
+
+        // Show save indicator
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // Slider value updates
+        function updateSliderValues() {
+            document.querySelectorAll('.slider-control').forEach(control => {
+                const slider = control.querySelector('input[type="range"]');
+                const valueDisplay = control.querySelector('.slider-value');
+                
+                if (slider && valueDisplay) {
+                    valueDisplay.textContent = slider.value;
+                    
+                    slider.addEventListener('input', () => {
+                        valueDisplay.textContent = slider.value;
+                        saveConfiguration();
+                    });
+                }
+            });
+        }
+
+        // Start conversation
+        function startConversation() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Not connected to backend. Please wait...');
+                return;
+            }
+
+            const topic = document.getElementById('topicInput').value;
+            const maxTurns = parseInt(document.getElementById('maxTurns').value);
+
+            ws.send(JSON.stringify({
+                type: 'start-conversation',
+                topic: topic,
+                maxTurns: maxTurns,
+                config: config
+            }));
+
+            document.getElementById('startBtn').disabled = true;
+            switchTab('conversation');
+        }
+
+        // Handle WebSocket messages
+        function handleMessage(data) {
+            switch(data.type) {
+                case 'message':
+                    addMessage(data.data);
+                    break;
+                case 'conversation-started':
+                    console.log('Conversation started:', data.sessionId);
+                    // Clear the conversation container
+                    const container = document.getElementById('conversationContainer');
+                    container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">Conversation started. Waiting for agent responses...</div>';
+                    break;
+                case 'conversation-end':
+                    document.getElementById('startBtn').disabled = false;
+                    break;
+                case 'agent_response_start':
+                case 'agent_response_chunk':
+                case 'agent_response_complete':
+                    handleAgentResponse(data);
+                    break;
+                case 'error':
+                    alert(`Error: ${data.message || 'Unknown error occurred'}`);
+                    document.getElementById('startBtn').disabled = false;
+                    break;
+            }
+        }
+
+        // Handle agent responses
+        function handleAgentResponse(data) {
+            const container = document.getElementById('conversationContainer');
+            
+            // Clear initial waiting message if present
+            if (container.querySelector('div[style*="text-align: center"]')) {
+                container.innerHTML = '';
+            }
+            
+            switch(data.type) {
+                case 'agent_response_start':
+                    // Create a placeholder for this agent's response
+                    const placeholderDiv = document.createElement('div');
+                    placeholderDiv.className = 'message';
+                    placeholderDiv.id = `agent-${data.agent.id}-response`;
+                    placeholderDiv.innerHTML = `
+                        <div style="font-weight: 600; color: #667eea; margin-bottom: 10px;">
+                            ${data.agent.name || data.agent.type} <span style="color: #999; font-size: 12px;">(typing...)</span>
+                        </div>
+                        <div class="agent-content"></div>
+                    `;
+                    container.appendChild(placeholderDiv);
+                    break;
+                    
+                case 'agent_response_chunk':
+                    // Append chunk to existing agent response
+                    const responseDiv = document.getElementById(`agent-${data.agent.id}-response`);
+                    if (responseDiv) {
+                        const contentDiv = responseDiv.querySelector('.agent-content');
+                        contentDiv.textContent += data.chunk;
+                    }
+                    break;
+                    
+                case 'agent_response_complete':
+                    // Update the agent's response to show completion
+                    const completeDiv = document.getElementById(`agent-${data.agent.id}-response`);
+                    if (completeDiv) {
+                        const headerDiv = completeDiv.querySelector('div[style*="font-weight: 600"]');
+                        headerDiv.innerHTML = `${data.agent.name || data.agent.type} <span style="color: #4caf50; font-size: 12px;">✓</span>`;
+                        const contentDiv = completeDiv.querySelector('.agent-content');
+                        contentDiv.textContent = data.response;
+                    }
+                    break;
+            }
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Add message to conversation
+        function addMessage(messageData) {
+            const container = document.getElementById('conversationContainer');
+            
+            if (container.querySelector('div[style*="text-align: center"]')) {
+                container.innerHTML = '';
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div style="font-weight: 600; color: #667eea; margin-bottom: 10px;">
+                    ${messageData.agent} (Turn ${messageData.turn + 1})
+                </div>
+                <div>${messageData.message}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Memory Management Functions
+        async function loadMemoryData() {
+            try {
+                const response = await fetch('/api/memory/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    
+                    // Update stats
+                    document.getElementById('total-sessions').textContent = stats.totalSessions || 0;
+                    document.getElementById('memory-usage').textContent = `${(stats.memoryUsage / 1024 / 1024).toFixed(2)} MB`;
+                    document.getElementById('last-sync').textContent = stats.lastSync || 'Never';
+                    
+                    // Load recent sessions
+                    loadRecentSessions();
+                    
+                    // Load agent evolution
+                    loadAgentEvolution();
+                    
+                    // Load consensus topics
+                    loadConsensusTopics();
+                }
+            } catch (error) {
+                console.error('Error loading memory data:', error);
+            }
+        }
+
+        async function loadRecentSessions() {
+            try {
+                const response = await fetch('/api/memory/sessions?limit=5');
+                if (response.ok) {
+                    const sessions = await response.json();
+                    const container = document.getElementById('recent-sessions');
+                    
+                    if (sessions.length === 0) {
+                        container.innerHTML = '<p style="color: #999;">No sessions recorded yet</p>';
+                    } else {
+                        container.innerHTML = '<h4>Recent Sessions</h4>' + sessions.map(session => `
+                            <div style="padding: 10px; background: #f9f9f9; margin: 10px 0; border-radius: 8px;">
+                                <strong>${session.topic}</strong><br>
+                                <small>Agents: ${session.agents.join(', ')}</small><br>
+                                <small>Messages: ${session.messageCount} | ${new Date(session.timestamp).toLocaleString()}</small>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading sessions:', error);
+            }
+        }
+
+        async function loadAgentEvolution() {
+            try {
+                const response = await fetch('/api/memory/agent-evolution');
+                if (response.ok) {
+                    const evolution = await response.json();
+                    const container = document.getElementById('agent-evolution');
+                    
+                    if (Object.keys(evolution).length === 0) {
+                        container.innerHTML = '<p style="color: #999;">No agent evolution data yet</p>';
+                    } else {
+                        container.innerHTML = Object.entries(evolution).map(([agentName, data]) => `
+                            <div style="margin: 15px 0;">
+                                <h4>${agentName}</h4>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                                    <div>
+                                        <strong>Evolution Stage:</strong> ${data.evolutionStage}
+                                    </div>
+                                    <div>
+                                        <strong>Interactions:</strong> ${data.interactionCount}
+                                    </div>
+                                    <div>
+                                        <strong>Top Skills:</strong> ${data.skills.slice(0, 3).join(', ') || 'None yet'}
+                                    </div>
+                                    <div>
+                                        <strong>Dominant Traits:</strong> ${Object.keys(data.traits).slice(0, 3).join(', ') || 'Developing'}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading agent evolution:', error);
+            }
+        }
+
+        async function loadConsensusTopics() {
+            try {
+                const response = await fetch('/api/memory/consensus');
+                if (response.ok) {
+                    const topics = await response.json();
+                    const container = document.getElementById('consensus-topics');
+                    
+                    if (topics.length === 0) {
+                        container.innerHTML = '<p style="color: #999;">No consensus reached yet</p>';
+                    } else {
+                        container.innerHTML = topics.map(topic => `
+                            <div style="padding: 10px; background: #e8f5e9; margin: 10px 0; border-radius: 8px; border-left: 4px solid #4caf50;">
+                                <strong>${topic.topic}</strong><br>
+                                <small>Confidence: ${(topic.confidence * 100).toFixed(0)}%</small><br>
+                                <small>Agreed by: ${topic.agents.join(', ')}</small>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading consensus topics:', error);
+            }
+        }
+
+        async function searchKnowledge() {
+            const query = document.getElementById('knowledge-search').value;
+            if (!query) return;
+            
+            try {
+                const response = await fetch('/api/memory/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                
+                if (response.ok) {
+                    const results = await response.json();
+                    const container = document.getElementById('knowledge-results');
+                    
+                    if (results.length === 0) {
+                        container.innerHTML = '<p style="color: #999;">No results found</p>';
+                    } else {
+                        container.innerHTML = results.map(result => `
+                            <div style="padding: 10px; background: white; margin: 10px 0; border-radius: 8px; border: 1px solid #e0e0e0;">
+                                <strong>${result.topic || 'Knowledge Item'}</strong><br>
+                                <p style="margin: 5px 0;">${result.content}</p>
+                                <small>Relevance: ${(result.relevance * 100).toFixed(0)}%</small>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error searching knowledge:', error);
+            }
+        }
+
+        async function exportMemories() {
+            if (confirm('Export all memories to JSON file?')) {
+                try {
+                    const response = await fetch('/api/memory/export');
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `axon-memories-${new Date().toISOString().split('T')[0]}.json`;
+                        a.click();
+                        showSaveIndicator();
+                    }
+                } catch (error) {
+                    console.error('Error exporting memories:', error);
+                }
+            }
+        }
+
+        async function clearOldMemories() {
+            const days = document.getElementById('memory-retention').value;
+            if (confirm(`Clear memories older than ${days} days?`)) {
+                try {
+                    const response = await fetch('/api/memory/cleanup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ days: parseInt(days) })
+                    });
+                    
+                    if (response.ok) {
+                        showSaveIndicator();
+                        loadMemoryData();
+                    }
+                } catch (error) {
+                    console.error('Error clearing memories:', error);
+                }
+            }
+        }
+
+        async function resetMemories() {
+            if (confirm('WARNING: This will delete ALL memories. Are you sure?')) {
+                if (confirm('This action cannot be undone. Continue?')) {
+                    try {
+                        const response = await fetch('/api/memory/reset', {
+                            method: 'POST'
+                        });
+                        
+                        if (response.ok) {
+                            showSaveIndicator();
+                            loadMemoryData();
+                        }
+                    } catch (error) {
+                        console.error('Error resetting memories:', error);
+                    }
+                }
+            }
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            connectWebSocket();
+            updateSliderValues();
+            
+            // Load default agents if none exist
+            if (config.agents.length === 0) {
+                config.agents = [
+                    {
+                        id: 'agent1',
+                        name: 'Explorer',
+                        provider: 'anthropic',
+                        model: 'claude-opus-4-20250514',
+                        systemPrompt: 'You are Explorer, a curious AI engaged in meaningful dialogue.'
+                    },
+                    {
+                        id: 'agent2',
+                        name: 'Synthesizer',
+                        provider: 'openai',
+                        model: 'gpt-4o',
+                        systemPrompt: 'You are Synthesizer, an analytical AI that connects ideas.'
+                    }
+                ];
+            }
+        };
+    </script>
+</body>
+</html>

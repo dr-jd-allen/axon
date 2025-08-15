@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:huggingface.co)",
+      "Bash(node:*)",
+      "Bash(powershell:*)",
+      "Bash(Create-Desktop-Icon.bat)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(npm install:*)",
+      "Bash(npm config get:*)",
+      "Bash(npm config:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": []
+  }
+}

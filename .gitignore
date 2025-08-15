@@ -9,12 +9,29 @@ Thumbs.db
 # Environment Variables
 .env
 .env.*
+backend/.env
 
-# Log files
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Logs
+logs/
 *.log
 
-# Future Build Output (if you add a build step)
+# Memory and cache
+memory-store/
+cache/
+*.db
+
+# Archive
+archive/
+
+# Temporary files
+nul
+*.tmp
+*.temp
+
+# Build Output
 /dist
 /build
-/node_modules
-```

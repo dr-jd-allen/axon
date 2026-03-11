@@ -369,6 +369,250 @@ app.get('/api/memory-tags/:userId?/:agentId?', (req, res) => {
   });
 });
 
+// === Memory API Endpoints (Recent Chats Access) ===
+
+// Memory stats
+app.get('/api/memory/stats', (req, res) => {
+  const userId = req.query.userId || 'default';
+
+  db.get(
+    `SELECT COUNT(DISTINCT session_id) as totalSessions, COUNT(*) as totalMessages, MAX(timestamp) as lastSync
+     FROM conversations WHERE user_id = ?`,
+    [userId],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // Estimate memory usage from message content
+      db.get(
+        `SELECT SUM(LENGTH(message)) as totalBytes FROM conversations WHERE user_id = ?`,
+        [userId],
+        (err2, sizeRow) => {
+          if (err2) return res.status(500).json({ error: err2.message });
+          res.json({
+            totalSessions: row?.totalSessions || 0,
+            totalMessages: row?.totalMessages || 0,
+            memoryUsage: sizeRow?.totalBytes || 0,
+            lastSync: row?.lastSync || null
+          });
+        }
+      );
+    }
+  );
+});
+
+// Recent sessions
+app.get('/api/memory/sessions', (req, res) => {
+  const userId = req.query.userId || 'default';
+  const limit = parseInt(req.query.limit) || 5;
+
+  db.all(
+    `SELECT session_id, MIN(timestamp) as started, MAX(timestamp) as timestamp,
+            COUNT(*) as messageCount, GROUP_CONCAT(DISTINCT sender_name) as agentNames,
+            MIN(message) as firstMessage
+     FROM conversations
+     WHERE user_id = ? AND session_id IS NOT NULL
+     GROUP BY session_id
+     ORDER BY MAX(timestamp) DESC
+     LIMIT ?`,
+    [userId, limit],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const sessions = (rows || []).map(row => ({
+        sessionId: row.session_id,
+        topic: row.firstMessage ? row.firstMessage.substring(0, 80) + (row.firstMessage.length > 80 ? '...' : '') : 'Untitled Session',
+        agents: row.agentNames ? row.agentNames.split(',') : [],
+        messageCount: row.messageCount,
+        timestamp: row.timestamp,
+        started: row.started
+      }));
+
+      res.json(sessions);
+    }
+  );
+});
+
+// Agent evolution data
+app.get('/api/memory/agent-evolution', (req, res) => {
+  const userId = req.query.userId || 'default';
+
+  db.all(
+    `SELECT sender_name, COUNT(*) as interactionCount,
+            COUNT(DISTINCT session_id) as sessionCount
+     FROM conversations
+     WHERE user_id = ? AND sender_type = 'agent'
+     GROUP BY sender_name`,
+    [userId],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const evolution = {};
+      (rows || []).forEach(row => {
+        const stage = row.interactionCount > 100 ? 'Advanced' :
+                      row.interactionCount > 50 ? 'Intermediate' :
+                      row.interactionCount > 10 ? 'Developing' : 'Nascent';
+        evolution[row.sender_name] = {
+          evolutionStage: stage,
+          interactionCount: row.interactionCount,
+          sessionCount: row.sessionCount,
+          skills: [],
+          traits: {}
+        };
+      });
+
+      // Enrich with memory tag data
+      db.all(
+        `SELECT mt.agent_id, mt.tag, AVG(mt.reward) as avgReward, COUNT(*) as count
+         FROM memory_tags mt WHERE mt.user_id = ?
+         GROUP BY mt.agent_id, mt.tag ORDER BY avgReward DESC`,
+        [userId],
+        (err2, tagRows) => {
+          if (err2) return res.json(evolution);
+
+          (tagRows || []).forEach(tag => {
+            // Find agent by id in evolution data
+            Object.values(evolution).forEach(agent => {
+              if (tag.tag) {
+                agent.skills.push(tag.tag);
+                agent.traits[tag.tag] = tag.avgReward;
+              }
+            });
+          });
+
+          res.json(evolution);
+        }
+      );
+    }
+  );
+});
+
+// Consensus topics
+app.get('/api/memory/consensus', (req, res) => {
+  const userId = req.query.userId || 'default';
+
+  // Find topics where multiple agents discussed similar content
+  db.all(
+    `SELECT session_id, GROUP_CONCAT(DISTINCT sender_name) as agents,
+            COUNT(DISTINCT sender_name) as agentCount, COUNT(*) as messageCount,
+            MIN(message) as sampleMessage
+     FROM conversations
+     WHERE user_id = ? AND sender_type = 'agent' AND session_id IS NOT NULL
+     GROUP BY session_id
+     HAVING agentCount > 1
+     ORDER BY messageCount DESC
+     LIMIT 10`,
+    [userId],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const topics = (rows || []).map(row => ({
+        topic: row.sampleMessage ? row.sampleMessage.substring(0, 100) : 'Discussion',
+        confidence: Math.min(row.agentCount / 3, 1),
+        agents: row.agents ? row.agents.split(',') : [],
+        messageCount: row.messageCount
+      }));
+
+      res.json(topics);
+    }
+  );
+});
+
+// Search knowledge base
+app.post('/api/memory/search', (req, res) => {
+  const userId = req.query.userId || 'default';
+  const { query } = req.body;
+
+  if (!query) return res.status(400).json({ error: 'Query is required' });
+
+  // SQLite LIKE-based search
+  const searchTerm = `%${query}%`;
+  db.all(
+    `SELECT id, session_id, sender_name, message, timestamp
+     FROM conversations
+     WHERE user_id = ? AND message LIKE ?
+     ORDER BY timestamp DESC
+     LIMIT 20`,
+    [userId, searchTerm],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const results = (rows || []).map(row => ({
+        topic: row.sender_name || 'Message',
+        content: row.message.length > 300 ? row.message.substring(0, 300) + '...' : row.message,
+        relevance: 0.8,
+        sessionId: row.session_id,
+        timestamp: row.timestamp
+      }));
+
+      res.json(results);
+    }
+  );
+});
+
+// Export memories
+app.get('/api/memory/export', (req, res) => {
+  const userId = req.query.userId || 'default';
+
+  db.all(
+    `SELECT * FROM conversations WHERE user_id = ? ORDER BY timestamp`,
+    [userId],
+    (err, conversations) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      db.all(
+        `SELECT * FROM memory_tags WHERE user_id = ? ORDER BY created_at`,
+        [userId],
+        (err2, tags) => {
+          if (err2) return res.status(500).json({ error: err2.message });
+
+          const exportData = {
+            exportDate: new Date().toISOString(),
+            userId,
+            conversations: conversations || [],
+            memoryTags: tags || []
+          };
+
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Content-Disposition', `attachment; filename=axon-memories-${new Date().toISOString().split('T')[0]}.json`);
+          res.json(exportData);
+        }
+      );
+    }
+  );
+});
+
+// Cleanup old memories
+app.post('/api/memory/cleanup', (req, res) => {
+  const userId = req.query.userId || 'default';
+  const { days } = req.body;
+
+  if (!days || days < 1) return res.status(400).json({ error: 'Valid number of days is required' });
+
+  db.run(
+    `DELETE FROM conversations WHERE user_id = ? AND timestamp < datetime('now', '-' || ? || ' days')`,
+    [userId, days],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, deleted: this.changes });
+    }
+  );
+});
+
+// Reset all memories
+app.post('/api/memory/reset', (req, res) => {
+  const userId = req.query.userId || 'default';
+
+  db.run('DELETE FROM conversations WHERE user_id = ?', [userId], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const deletedConversations = this.changes;
+    db.run('DELETE FROM memory_tags WHERE user_id = ?', [userId], function(err2) {
+      if (err2) return res.status(500).json({ error: err2.message });
+      res.json({ success: true, deletedConversations, deletedTags: this.changes });
+    });
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });

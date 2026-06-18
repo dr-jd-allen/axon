@@ -539,7 +539,6 @@ app.post('/api/memory/search', (req, res) => {
       const results = (rows || []).map(row => ({
         topic: row.sender_name || 'Message',
         content: row.message.length > 300 ? row.message.substring(0, 300) + '...' : row.message,
-        relevance: 0.8,
         sessionId: row.session_id,
         timestamp: row.timestamp
       }));
